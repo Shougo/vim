@@ -1260,4 +1260,12 @@ func Test_insert_small_delete_linewise()
   bwipe!
 endfunc
 
+func Test_write_dot_register()
+  let save_dot = getreg('.')
+  call setreg('.', 'foobar')
+  call assert_equal('foobar', getreg('.'))
+  call setreg('.', save_dot)
+  call assert_equal(save_dot, getreg('.'))
+endfunc
+
 " vim: shiftwidth=2 sts=2 expandtab
