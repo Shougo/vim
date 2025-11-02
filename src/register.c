@@ -2824,7 +2824,7 @@ write_reg_contents_lst(
 {
     yankreg_T  *old_y_previous, *old_y_current;
 
-    if (name == '/' || name == '=')
+    if (name == '/' || name == '=' || name == '.')
     {
 	char_u	*s;
 
@@ -2874,6 +2874,13 @@ write_reg_contents_ex(
     if (name == '/')
     {
 	set_last_search_pat(str, RE_SEARCH, TRUE, TRUE);
+	return;
+    }
+
+    // Special case: '.' dot repeat register
+    if (name == '.')
+    {
+	set_last_insert_str(str);
 	return;
     }
 
