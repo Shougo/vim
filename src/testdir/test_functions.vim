@@ -3106,7 +3106,8 @@ func Test_readdirex_sort()
 
   " 6) Collation de_DE
   " Switch locale, this may not work on the CI system, if the locale isn't
-  " available
+  " available. Doesn't work on OpenBSD, which has minimal locale support.
+  CheckNotOpenBSD
   try
     lang collate de_DE
     let files = readdirex('Xsortdir2', 1, #{sort: 'collate'})->map({-> v:val.name})
@@ -4557,6 +4558,13 @@ func Test_blob2str()
     call assert_fails("call blob2str(0z6162, [])", 'E1206: Dictionary required for argument 2')
     call assert_fails("call blob2str(0z6162, {'encoding': []})", 'E730: Using a List as a String')
     call assert_fails("call blob2str(0z6162, {'encoding': 'ab12xy'})", 'E1515: Unable to convert from ''ab12xy'' encoding')
+
+    #" UTF-16LE encoding
+    call assert_equal(['Hello'], blob2str(0z480065006C006C006F00, {'encoding': 'utf-16le'}))
+    call assert_equal(['Hello'], blob2str(0z480065006C006C006F00, {'encoding': 'utf16le'}))
+    #" UCS-2LE encoding
+    call assert_equal(['Hello'], blob2str(0z480065006C006C006F00, {'encoding': 'ucs-2le'}))
+    call assert_equal(['Hello'], blob2str(0z480065006C006C006F00, {'encoding': 'ucs2le'}))
   END
   call v9.CheckLegacyAndVim9Success(lines)
 endfunc

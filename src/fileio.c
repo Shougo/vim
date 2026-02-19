@@ -1170,7 +1170,12 @@ retry:
 	}
 
 	// Protect against the argument of lalloc() going negative.
-	if (size < 0 || size + linerest + 1 < 0 || linerest >= MAXCOL)
+	// Also split lines that are too long for colnr_T.  After this check
+	// passes, we read up to 'size' more bytes.  We must ensure that even
+	// after that read, the line length won't exceed MAXCOL - 1 (because
+	// we add 1 for the NUL when casting to colnr_T).  If this check fires,
+	// we insert a synthetic newline immediately, so linerest doesn't grow.
+	if (size < 0 || size + linerest + 1 < 0 || linerest >= MAXCOL - size)
 	{
 	    ++split;
 	    *ptr = NL;		    // split line by inserting a NL
@@ -3457,7 +3462,9 @@ shorten_fname(char_u *full_path, char_u *dir_name)
 #endif
 	{
 	    if (vim_ispathsep(*p))
-		++p;
+		do
+		    ++p;
+		while (vim_ispathsep_nocolon(*p));
 #ifndef VMS   // the path separator is always part of the path
 	    else
 		p = NULL;
@@ -4480,7 +4487,7 @@ buf_check_timestamp(
 	// Reload the buffer.
 	buf_reload(buf, orig_mode, reload == RELOAD_DETECT);
 #ifdef FEAT_PERSISTENT_UNDO
-	if (buf->b_p_udf && buf->b_ffname != NULL)
+	if (bufref_valid(&bufref) && buf->b_p_udf && buf->b_ffname != NULL)
 	{
 	    char_u	    hash[UNDO_HASH_SIZE];
 	    buf_T	    *save_curbuf = curbuf;

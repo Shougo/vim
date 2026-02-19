@@ -2965,7 +2965,7 @@ clip_wl_receive_data(Clipboard_T *cbd, const char *mime_type, int fd)
 
     if (STRCMP(mime_type, VIM_ATOM_NAME) == 0 && buf.ga_len >= 2)
     {
-	motion_type = *final++;;
+	motion_type = *final++;
 	buf.ga_len--;
     }
     else if (STRCMP(mime_type, VIMENC_ATOM_NAME) == 0 && buf.ga_len >= 3)
@@ -3136,8 +3136,8 @@ vwl_data_source_listener_event_send(
     if (is_vimenc)
     {
 	string[0] = (char_u)motion_type;
-	// strcpy copies the NUL terminator too
-	strcpy((char *)string + 1, (char *)p_enc);
+	// Use vim_strncpy for safer copying
+	vim_strncpy(string + 1, p_enc, STRLEN(p_enc));
     }
     else if (is_vim)
 	string[0] = (char_u)motion_type;
