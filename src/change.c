@@ -713,6 +713,22 @@ remove_listeners(buf_T *buf)
 
 #endif
 
+#ifdef FEAT_PROP_POPUP
+/*
+ * Called for popup window "wp" when its buffer was changed: invalidate the
+ * cached line and cursor information and redraw it.
+ */
+    static void
+changed_popup_win(win_T *wp)
+{
+    wp->w_lines_valid = 0;
+    changed_line_abv_curs_win(wp);
+    invalidate_botline_win(wp);
+    if (!redraw_not_allowed)
+	redraw_win_later(wp, UPD_NOT_VALID);
+}
+#endif
+
 /*
  * Common code for when a change was made.
  * See changed_lines() for the arguments.
@@ -955,6 +971,18 @@ changed_common(
 	    search_hl_has_cursor_lnum += xtra;
 #endif
     }
+
+#ifdef FEAT_PROP_POPUP
+    // Popup windows are not in the window list.  Redraw a popup window that
+    // shows the buffer completely, it is usually small.
+    FOR_ALL_POPUPWINS(wp)
+	if (wp->w_buffer == curbuf)
+	    changed_popup_win(wp);
+    FOR_ALL_TABPAGES(tp)
+	FOR_ALL_POPUPWINS_IN_TAB(tp, wp)
+	    if (wp->w_buffer == curbuf)
+		changed_popup_win(wp);
+#endif
 
     // Call update_screen() later, which checks out what needs to be redrawn,
     // since it notices b_mod_set and then uses b_mod_*.

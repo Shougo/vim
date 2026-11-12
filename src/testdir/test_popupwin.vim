@@ -6458,4 +6458,18 @@ func Test_popupwin_close_and_redraw_keeps_cursor()
   call StopVimInTerminal(buf)
 endfunc
 
+" A change in the buffer of a popup window was not displayed.
+func Test_popupwin_redraw_after_change()
+  CheckRunVimInTerminal
+  let lines =<< trim END
+	let g:id = popup_create(['abcdef'], #{line: 3, col: 5, minwidth: 20})
+  END
+  call writefile(lines, 'XtestPopupChange', 'D')
+  let buf = RunVimInTerminal('-S XtestPopupChange', #{rows: 8})
+  call WaitForAssert({-> assert_match('^\~   abcdef ', term_getline(buf, 3))})
+  call term_sendkeys(buf, ":call win_execute(g:id, 'normal! x')\<CR>")
+  call WaitForAssert({-> assert_match('^\~   bcdef ', term_getline(buf, 3))})
+  call StopVimInTerminal(buf)
+endfunc
+
 " vim: shiftwidth=2 sts=2
