@@ -1128,6 +1128,19 @@ func Test_win_execute_not_allowed()
   bw filename
 endfunc
 
+" Insert mode completion in a popup window used to hang when scanning
+" other windows, since the popup is not in the window list.
+func Test_win_execute_complete_in_popup()
+  new
+  call setline(1, ['foobar', 'foobaz'])
+  let winid = popup_create(['fo'], {})
+  call win_execute(winid, "normal! A\<C-N>\<Esc>")
+  call assert_equal(['foobar'], getbufline(winbufnr(winid), 1, '$'))
+
+  call popup_close(winid)
+  bwipe!
+endfunc
+
 func Test_popup_with_wrap()
   CheckScreendump
 

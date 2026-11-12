@@ -3428,7 +3428,16 @@ ins_compl_next_buf(buf_T *buf, int flag)
 	while (TRUE)
 	{
 	    // Move to next window (wrap to first window if at the end)
-	    wp = (wp->w_next != NULL) ? wp->w_next : firstwin;
+#ifdef FEAT_PROP_POPUP
+	    // A popup window is not in the window list, when "curwin" is a
+	    // popup go through all windows once and then back to "curwin".
+	    if (WIN_IS_POPUP(wp))
+		wp = firstwin;
+	    else if (wp->w_next == NULL && WIN_IS_POPUP(curwin))
+		wp = curwin;
+	    else
+#endif
+		wp = (wp->w_next != NULL) ? wp->w_next : firstwin;
 	    // Break if we're back at start or found an unscanned buffer
 	    if (wp == curwin || !wp->w_buffer->b_scanned)
 		break;
